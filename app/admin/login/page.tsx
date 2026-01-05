@@ -1,10 +1,11 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-// IMPORT SUPABASE CLIENT
+// IMPORT SUPABASE CLIENT - Pastikan folder 'lib' ada di root project
 import { supabase } from "../../../lib/supabase";
 
 export default function AdminLogin() {
@@ -19,32 +20,33 @@ export default function AdminLogin() {
 
         try {
             // 1. LOGIN KE SUPABASE AUTH
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { error } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: pass,
             });
 
             if (error) throw error;
 
-            // 2. SET COOKIE (Tetap dipertahankan agar Middleware lama kamu tetap jalan)
-            // Supabase sebenarnya sudah mengelola session sendiri, tapi ini bagus untuk backup
+            // 2. SET COOKIE (PENTING: Harus sinkron dengan middleware.ts Anda)
             document.cookie = "admin_session=true; path=/; max-age=86400; SameSite=Lax";
 
             // 3. ARAHKAN KE DASHBOARD
+            alert("Login Berhasil! Selamat datang Admin EduAssist.");
             setTimeout(() => {
                 router.push("/admin/dashboard");
             }, 500);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            // FIX KUNING: Menangani error secara spesifik agar TypeScript tidak protes
             setIsLoading(false);
-            // Pesan error sekarang dinamis dari database (misal: "Invalid login credentials")
-            alert("Login Gagal: " + error.message);
+            const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat login";
+            alert("Login Gagal: " + errorMessage);
         }
     };
 
     return (
-        <main className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-            {/* Background Decor - Fitur Dipertahankan */}
+        <main className="min-h-screen flex items-center justify-center bg-slate-50 px-4 relative overflow-hidden">
+            {/* Background Decor - Visual Mewah Dipertahankan */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
                 <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-[120px]"></div>
                 <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-100/30 rounded-full blur-[120px]"></div>
@@ -73,7 +75,7 @@ export default function AdminLogin() {
                         <input
                             type="email"
                             placeholder="Email Admin"
-                            className="w-full pl-14 pr-5 py-5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-medium"
+                            className="w-full pl-14 pr-5 py-5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-medium text-slate-900"
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
@@ -85,7 +87,7 @@ export default function AdminLogin() {
                         <input
                             type="password"
                             placeholder="Password"
-                            className="w-full pl-14 pr-5 py-5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-medium"
+                            className="w-full pl-14 pr-5 py-5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-medium text-slate-900"
                             onChange={(e) => setPass(e.target.value)}
                             required
                         />
@@ -102,8 +104,8 @@ export default function AdminLogin() {
                     </button>
                 </form>
 
-                <div className="mt-8 text-center">
-                    <Link href="/" className="text-slate-400 text-sm font-bold hover:text-blue-600 transition">
+                <div className="mt-8 text-center border-t border-slate-50 pt-6">
+                    <Link href="/" className="text-slate-400 text-sm font-bold hover:text-blue-600 transition uppercase tracking-widest">
                         Kembali ke Beranda Umum
                     </Link>
                 </div>

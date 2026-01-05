@@ -68,8 +68,9 @@ export default function AdminDashboard() {
         return (match && match[2].length === 11) ? match[2] : null;
     };
 
-    const processImage = (e: any) => {
-        const file = e.target.files[0];
+    // MEMBERSIHKAN KUNING: Menggunakan tipe data yang benar
+    const processImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
@@ -103,7 +104,7 @@ export default function AdminDashboard() {
             visualType === "image" ? selectedImage :
                 getYouTubeID(youtubeLink);
 
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('articles')
             .insert([
                 {
@@ -238,7 +239,7 @@ export default function AdminDashboard() {
                             <div className={`mx-auto transition-all duration-500 overflow-hidden border border-slate-50 bg-[#F8FAFC] rounded-[2rem] ${isPreviewMobile ? 'w-[260px]' : 'w-full'}`}>
                                 <div className="p-4 flex flex-col">
                                     <div className="aspect-video bg-indigo-100 rounded-2xl mb-4 flex items-center justify-center text-indigo-300 overflow-hidden">
-                                        {selectedImage ? <img src={selectedImage} className="w-full h-full object-cover" /> : <ImageIcon size={32} />}
+                                        {visualType === "icon" ? <DynamicIcon name={selectedIcon} /> : (selectedImage ? <img src={selectedImage} className="w-full h-full object-cover" alt="Preview" /> : <ImageIcon size={32} />)}
                                     </div>
                                     <div className="font-black text-slate-900 leading-tight mb-2 text-sm">{title || 'Judul Artikel'}</div>
                                     <div className="text-[10px] text-slate-400 line-clamp-2 mb-4">{excerpt}</div>
@@ -249,7 +250,7 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            {/* FITUR JADWAL (Baru) */}
+                            {/* FITUR JADWAL */}
                             <div className="mt-8 pt-6 border-t border-slate-100">
                                 <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-3 block flex items-center gap-2">
                                     <Clock size={14} className="text-indigo-600" /> Jadwal Publikasi
@@ -292,7 +293,7 @@ export default function AdminDashboard() {
                                 )}
                                 {visualType === "image" && (
                                     <div onClick={() => fileInputRef.current?.click()} className="aspect-video bg-slate-50 border-2 border-dashed rounded-2xl mb-4 flex flex-col items-center justify-center cursor-pointer overflow-hidden text-slate-400">
-                                        {selectedImage ? <img src={selectedImage} className="w-full h-full object-cover" /> : <><ImageIcon size={24} /><span className="text-[10px] font-black mt-1">Upload</span></>}
+                                        {selectedImage ? <img src={selectedImage} className="w-full h-full object-cover" alt="Upload" /> : <><ImageIcon size={24} /><span className="text-[10px] font-black mt-1">Upload</span></>}
                                         <input type="file" hidden ref={fileInputRef} onChange={processImage} accept="image/*" />
                                     </div>
                                 )}
