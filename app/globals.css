@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1. VARIABEL & ROOT */
+:root {
+    --edu-primary: #4f46e5;
+    --edu-secondary: #f59e0b;
+    --edu-bg: #f8fafc;
+}
+
+/* 2. BASE STYLES */
+body {
+    background: radial-gradient(circle at top right, #f1f5f9, #ffffff);
+    color: #0f172a;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    /* @apply antialiased diubah ke standar CSS agar tidak kuning */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 3. COMPONENT CLASSES (LENGKAP) */
+.glass-nav {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary {
+    @apply bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold transition-all duration-300 hover:bg-slate-900 hover:shadow-2xl hover:shadow-indigo-200 active:scale-95;
+}
+
+/* 4. GLOBAL SCROLLBAR (SISI KANAN LAYAR) */
+/* Dukungan untuk Chrome, Edge, Safari */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--edu-primary);
+}
+
+/* Dukungan untuk Firefox (Fitur Tambahan) */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #e2e8f0 transparent;
+}
+
+/* 5. PREMIUM SCROLLBAR (UNTUK CAROUSEL/SLIDER) */
+.scrollbar-premium::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scrollbar-premium::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.5);
+    border-radius: 20px;
+    margin: 0 40px;
+}
+
+.scrollbar-premium::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 20px;
+}
+
+.scrollbar-premium::-webkit-scrollbar-thumb:hover {
+    background: var(--edu-primary);
+}
+
+/* 6. UTILITY CLASSES */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Animasi Halus untuk Carousel */
+.snap-x {
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+}
+
+.snap-start {
+    scroll-snap-align: start;
+}
