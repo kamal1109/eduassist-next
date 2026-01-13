@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase-server'; // Server-side Supabase client
+// PERBAIKAN: Gunakan file yang benar-benar ada di folder lib Anda
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
     try {
         const { email, password } = await request.json();
 
-        // Rate limiting di server
-        const ip = request.ip || 'unknown';
-        // ... rate limiting logic ...
+        // Rate limiting di server (Opsional, bisa dilewati dulu kalau belum ada logic-nya)
+        // const ip = request.ip || 'unknown';
 
         // Login via Supabase
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -25,14 +25,16 @@ export async function POST(request: NextRequest) {
         // Set secure HTTP-only cookie
         const response = NextResponse.json({ success: true });
 
-        response.cookies.set({
-            name: 'admin_session',
-            value: data.session.access_token,
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 // 24 jam
-        });
+        if (data.session) {
+            response.cookies.set({
+                name: 'admin_session',
+                value: data.session.access_token,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 // 24 jam
+            });
+        }
 
         return response;
 
