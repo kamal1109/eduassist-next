@@ -1,11 +1,12 @@
 "use client";
-import { useState, useMemo, useEffect, useCallback } from "react";
+
+import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Calendar, ArrowRight, Users,
     Sparkles, MessageCircle, PlayCircle,
     ChevronLeft, ChevronRight, Search, X, Eye,
-    GraduationCap, Bookmark, ShoppingBag, Filter, Loader2
+    GraduationCap, Bookmark, ShoppingBag, Filter
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from '@/lib/supabase';
@@ -30,7 +31,9 @@ interface Article {
     tags?: string[];
 }
 
-export default function ArtikelPage() {
+// --- KOMPONEN KONTEN UTAMA ---
+// Logika utama dipindahkan ke sini agar bisa dibungkus Suspense
+function ArtikelContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialFilter = searchParams.get('category') || "Semua";
@@ -806,5 +809,22 @@ export default function ArtikelPage() {
                 </div>
             </footer>
         </main>
+    );
+}
+
+// --- WRAPPER UNTUK NEXT.JS BUILD (WAJIB) ---
+// Ini yang diekspor sebagai default page
+export default function ArtikelPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Memuat Artikel...</p>
+                </div>
+            </div>
+        }>
+            <ArtikelContent />
+        </Suspense>
     );
 }

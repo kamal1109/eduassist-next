@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from "lucide-react";
@@ -8,6 +8,8 @@ import Link from "next/link";
 
 // IMPORT SUPABASE CLIENT
 import { supabase } from "../../../lib/supabase";
+
+// --- HELPER FUNCTIONS (Tetap sama) ---
 
 // Helper untuk encrypt session sederhana
 const encryptSession = (data: object): string => {
@@ -47,9 +49,11 @@ const isStrongPassword = (password: string): boolean => {
     return score >= 3; // Minimal 3 dari 4 requirements
 };
 
-export default function AdminLogin() {
+// --- KOMPONEN UTAMA (ISI FORM) ---
+// Kita ubah nama fungsi utama Anda menjadi 'LoginForm'
+function LoginForm() {
     const router = useRouter();
-    const searchParams = useSearchParams();
+    const searchParams = useSearchParams(); // Ini yang butuh Suspense
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -324,6 +328,7 @@ export default function AdminLogin() {
 
     const remainingTime = getRemainingTime();
 
+    // RETURN JSX ASLINYA (TIDAK ADA YANG DIUBAH DI UI)
     return (
         <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 relative overflow-hidden">
             {/* Background Decor */}
@@ -455,7 +460,7 @@ export default function AdminLogin() {
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-xs text-slate-500">Kekuatan password:</span>
                                 <span className={`text-xs font-bold ${isStrongPassword(password) ? 'text-green-600' :
-                                        password.length >= 6 ? 'text-amber-600' : 'text-red-600'
+                                    password.length >= 6 ? 'text-amber-600' : 'text-red-600'
                                     }`}>
                                     {isStrongPassword(password) ? 'Kuat' :
                                         password.length >= 6 ? 'Sedang' : 'Lemah'}
@@ -464,7 +469,7 @@ export default function AdminLogin() {
                             <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                 <div
                                     className={`h-full transition-all duration-500 ${isStrongPassword(password) ? 'bg-green-500' :
-                                            password.length >= 6 ? 'bg-amber-500' : 'bg-red-500'
+                                        password.length >= 6 ? 'bg-amber-500' : 'bg-red-500'
                                         }`}
                                     style={{
                                         width: `${Math.min(
@@ -521,5 +526,22 @@ export default function AdminLogin() {
                 </div>
             </motion.div>
         </main>
+    );
+}
+
+// --- Wrapper Component dengan Suspense ---
+// Ini yang diekspor sebagai default page
+export default function AdminLoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-500 font-medium">Memuat Login...</p>
+                </div>
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }
