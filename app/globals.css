@@ -7,56 +7,89 @@
     --edu-primary: #4f46e5;
     --edu-secondary: #f59e0b;
     --edu-bg: #f8fafc;
+    --edu-slate-900: #0f172a;
+    --edu-slate-200: #e2e8f0;
 }
 
-/* 2. BASE STYLES */
-body {
-    background: radial-gradient(circle at top right, #f1f5f9, #ffffff);
-    color: #0f172a;
-    scroll-behavior: smooth;
-    overflow-x: hidden;
-    /* @apply antialiased diubah ke standar CSS agar tidak kuning */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+/* 2. BASE STYLES - IMPROVED */
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-gradient-to-b from-slate-50 to-white text-slate-900;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+    }
+
+    /* Typography improvements */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-black tracking-tight;
+    }
+
+    /* Better focus styles for accessibility */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-indigo-500;
+    }
 }
 
 /* 3. COMPONENT CLASSES (LENGKAP) */
-.glass-nav {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+@layer components {
+    .glass-nav {
+        @apply bg-white/80 backdrop-blur-md border-b border-slate-200/60;
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    .glass-card {
+        @apply bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-lg shadow-slate-200/20;
+    }
+
+    .btn-primary {
+        @apply bg-slate-900 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all duration-300 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+    }
+
+    .btn-secondary {
+        @apply bg-white text-slate-900 border border-slate-300 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all duration-300 hover:border-indigo-400 hover:shadow-md active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+    }
+
+    /* Section container utility */
+    .section-container {
+        @apply container mx-auto px-4 sm:px-6 max-w-7xl;
+    }
 }
 
-.btn-primary {
-    @apply bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold transition-all duration-300 hover:bg-slate-900 hover:shadow-2xl hover:shadow-indigo-200 active:scale-95;
-}
-
-/* 4. GLOBAL SCROLLBAR (SISI KANAN LAYAR) */
-/* Dukungan untuk Chrome, Edge, Safari */
+/* 4. GLOBAL SCROLLBAR */
+/* Webkit browsers (Chrome, Edge, Safari) */
 ::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+    @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
+    @apply bg-slate-300 rounded-full;
     border: 2px solid transparent;
     background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--edu-primary);
+    @apply bg-indigo-400;
 }
 
-/* Dukungan untuk Firefox (Fitur Tambahan) */
+/* Firefox */
 * {
     scrollbar-width: thin;
-    scrollbar-color: #e2e8f0 transparent;
+    scrollbar-color: #cbd5e1 transparent;
 }
 
 /* 5. PREMIUM SCROLLBAR (UNTUK CAROUSEL/SLIDER) */
@@ -65,36 +98,125 @@ body {
 }
 
 .scrollbar-premium::-webkit-scrollbar-track {
-    background: rgba(241, 245, 249, 0.5);
-    border-radius: 20px;
-    margin: 0 40px;
+    @apply bg-slate-100/50 rounded-full;
+    margin: 0 2rem;
 }
 
 .scrollbar-premium::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 20px;
+    @apply bg-slate-300 rounded-full;
 }
 
 .scrollbar-premium::-webkit-scrollbar-thumb:hover {
-    background: var(--edu-primary);
+    @apply bg-indigo-500;
 }
 
 /* 6. UTILITY CLASSES */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Animations */
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .animate-pulse-slow {
+        animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Text utilities */
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    /* Gradient backgrounds */
+    .gradient-primary {
+        @apply bg-gradient-to-r from-indigo-500 to-indigo-600;
+    }
+
+    .gradient-secondary {
+        @apply bg-gradient-to-r from-indigo-50 to-blue-50;
+    }
+
+    /* Glass effect */
+    .glass-effect {
+        @apply bg-white/10 backdrop-blur-md border border-white/20;
+    }
 }
 
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+/* 7. ANIMATIONS */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
-/* Animasi Halus untuk Carousel */
-.snap-x {
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
 }
 
-.snap-start {
-    scroll-snap-align: start;
+.animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* 8. MOBILE OPTIMIZATIONS */
+@media (max-width: 640px) {
+
+    /* Better touch targets */
+    button,
+    a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Prevent text overflow */
+    h1,
+    h2,
+    h3 {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    /* Optimize images for mobile */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* 9. PRINT STYLES */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        color: #000 !important;
+        background: #fff !important;
+    }
+
+    a {
+        color: #000 !important;
+        text-decoration: underline !important;
+    }
 }
