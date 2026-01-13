@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -19,27 +21,8 @@ import {
     AlertCircle,
     CheckCircle,
 } from "lucide-react";
-import type { Metadata, Viewport } from "next";
 
-// --- 1. CONFIG METADATA & VIEWPORT (WAJIB DIPISAH DI NEXT.JS 14) ---
-
-export const metadata: Metadata = {
-    title: "EduAssist - Jasa Responden & Olah Data No.1 Indonesia",
-    description: "Solusi lengkap penelitian mahasiswa. Jasa cari responden kuesioner asli, olah data SPSS/PLS, dan konsultasi skripsi terpercaya.",
-    keywords: ["jasa responden", "olah data skripsi", "responden kuesioner", "jasa sebar kuesioner", "eduassist"],
-    authors: [{ name: "Tim EduAssist" }],
-    icons: {
-        icon: "/favicon.ico",
-    },
-};
-
-export const viewport: Viewport = {
-    themeColor: "#4f46e5", // Warna Indigo-600
-    width: "device-width",
-    initialScale: 1,
-};
-
-// --- 2. DATA DUMMY ---
+// --- DATA DUMMY ---
 
 const shopeeReviews = [
     { name: "dahliamarufi12", date: "2025-04-27", review: "seller responsif amanah dan gercep, terima kasih seller sukses selalu", rating: 5 },
@@ -69,22 +52,9 @@ const universities = [
     "UNNES", "UNY", "UNS", "UNJ", "UNM", "UNHAS", "UB", "UNIBRAW", "UNUD", "UNSRAT"
 ];
 
-// --- 3. CLIENT COMPONENT UTAMA ---
+// --- KOMPONEN UTAMA ---
 
 export default function Home() {
-    return <HomeContent />;
-}
-
-// Kita pisahkan logic "use client" ke komponen bawah agar Metadata (Server Component) bisa jalan di atas
-// TAPI karena Anda menggunakan framer-motion dan hooks di seluruh halaman,
-// cara paling aman adalah membiarkan file ini menjadi Client Component ("use client" di atas),
-// TETAPI Metadata harus dipindah ke layout.tsx atau biarkan saja (Next.js akan pakai default layout).
-
-// --- OPSI TERBAIK UNTUK ANDA SAAT INI (LANGSUNG GABUNG) ---
-// Karena di Next.js App Router, page.tsx yang ada "use client" TIDAK BOLEH punya export metadata.
-// Jadi kode di bawah ini adalah versi "use client" murni. Metadata silakan atur di `app/layout.tsx`.
-
-function HomeContent() {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [visibleReviews, setVisibleReviews] = useState<typeof shopeeReviews>([]);
