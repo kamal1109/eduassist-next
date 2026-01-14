@@ -238,19 +238,28 @@ function LoginForm() {
                 throw new Error("Gagal membuat session.");
             }
 
-            // 4. SET COOKIE dengan atribut keamanan
-            // PERBAIKAN PENTING: SameSite=Lax (Bukan Strict)
-            const isProduction = process.env.NODE_ENV === 'production';
-            const cookieOptions = [
+            // 4. SET COOKIE (VERSI REVISI - LEBIH BERSIH)
+            // Deteksi protokol otomatis agar Secure flag tepat sasaran
+            const isSecure = window.location.protocol === 'https:';
+
+            // Susun cookie string tanpa 'HttpOnly' (karena client-side)
+            const cookieString = [
                 `admin_session=${encodeURIComponent(sessionString)}`,
                 `path=/`,
                 `max-age=${24 * 60 * 60}`,
-                `SameSite=Lax`, // <--- WAJIB 'LAX' UNTUK REDIRECT LOGIN
-                isProduction ? 'Secure' : '',
-                'HttpOnly=false' // Karena client-side
+                `SameSite=Lax`,
+                isSecure ? 'Secure' : ''
             ].filter(Boolean).join('; ');
 
-            document.cookie = cookieOptions;
+            document.cookie = cookieString;
+
+            // Debugging: Cek apakah cookie benar-benar masuk
+            console.log("🍪 Trying to set cookie:", cookieString);
+            console.log("🍪 Current Document Cookies:", document.cookie);
+
+            if (!document.cookie.includes('admin_session')) {
+                console.warn("⚠️ PERINGATAN: Cookie admin_session tidak terdeteksi setelah diset!");
+            }
 
             // 5. Reset attempts pada success
             try {
@@ -271,11 +280,11 @@ function LoginForm() {
             // 7. Log success
             console.log(`[LOGIN SUCCESS] Admin: ${email.substring(0, 3)}***`);
 
-            // 8. Redirect & REFRESH
-            // Refresh sangat penting agar Middleware membaca cookie baru
-            await delay(300);
-            router.refresh();
-            router.push(returnUrl);
+            // 8. Redirect PAKSA (Hard Reload)
+            // Menggunakan window.location.href untuk memaksa browser refresh total
+            // agar cookie terbaca sempurna oleh Middleware
+            await delay(500);
+            window.location.href = returnUrl;
 
         } catch (error: unknown) {
             setIsLoading(false);
