@@ -187,15 +187,14 @@ function LoginForm() {
 
         try {
             // Delay buatan untuk mencegah timing attacks
-            await delay(800 + Math.random() * 400);
+            await delay(500); // Delay sedikit dipercepat
 
-            // 1. LOGIN KE SUPABASE AUTH dengan timeout
+            // 1. LOGIN KE SUPABASE AUTH
             const loginPromise = supabase.auth.signInWithPassword({
                 email: email.trim().toLowerCase(),
                 password: password,
             });
 
-            // Timeout setelah 10 detik
             const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => reject(new Error("Timeout: Login terlalu lama")), 10000);
             });
@@ -222,67 +221,66 @@ function LoginForm() {
                 throw new Error("Session tidak ditemukan.");
             }
 
-            // 2. Buat session data yang aman
+            // 2. Buat session data yang Ringkas
             const sessionData = {
                 userId: data.session.user.id,
                 email: data.session.user.email,
                 role: 'admin',
                 expiry: Date.now() + (24 * 60 * 60 * 1000), // 24 jam
-                issuedAt: Date.now(),
-                token: data.session.access_token.substring(0, 10) + '...' // Hanya partial token
+                token: data.session.access_token.substring(0, 15) // Partial token
             };
 
-            // 3. Encode session untuk cookie
             const sessionString = encryptSession(sessionData);
             if (!sessionString) {
                 throw new Error("Gagal membuat session.");
             }
 
-            // 4. SET COOKIE (VERSI REVISI - LEBIH BERSIH)
-            // Deteksi protokol otomatis agar Secure flag tepat sasaran
-            const isSecure = window.location.protocol === 'https:';
+            // 3. SET COOKIE (VERSI UNIVERSAL & DETEKSI OTOMATIS)
+            // Deteksi apakah sedang di HTTPS (Vercel) atau HTTP (Localhost)
+            const isSecureContext = window.location.protocol === 'https:';
 
-            // Susun cookie string tanpa 'HttpOnly' (karena client-side)
-            const cookieString = [
-                `admin_session=${encodeURIComponent(sessionString)}`,
-                `path=/`,
-                `max-age=${24 * 60 * 60}`,
-                `SameSite=Lax`,
-                isSecure ? 'Secure' : ''
-            ].filter(Boolean).join('; ');
+            // Susun atribut cookie dasar
+            // Hapus HttpOnly (JS Client tidak bisa set ini)
+            let cookieString = `admin_session=${encodeURIComponent(sessionString)}; path=/; max-age=86400; SameSite=Lax`;
 
+            // HANYA tambahkan Secure jika benar-benar di HTTPS
+            if (isSecureContext) {
+                cookieString += "; Secure";
+            }
+
+            // Tulis ke browser
             document.cookie = cookieString;
 
-            // Debugging: Cek apakah cookie benar-benar masuk
-            console.log("🍪 Trying to set cookie:", cookieString);
-            console.log("🍪 Current Document Cookies:", document.cookie);
+            // 4. CEK ULANG (Fallback)
+            // Kalau cookie masih kosong, kita coba paksa tanpa atribut Secure (untuk jaga-jaga)
+            await delay(100);
+            if (!document.cookie.includes('admin_session')) {
+                console.warn("⚠️ Cookie pertama gagal/diblokir, mencoba mode fallback...");
+                document.cookie = `admin_session=${encodeURIComponent(sessionString)}; path=/; max-age=86400; SameSite=Lax`;
+            }
+
+            // 5. DEBUGGING FINAL
+            console.log("🍪 Status Cookie:", document.cookie.includes('admin_session') ? "TERSIMPAN ✅" : "GAGAL ❌");
 
             if (!document.cookie.includes('admin_session')) {
-                console.warn("⚠️ PERINGATAN: Cookie admin_session tidak terdeteksi setelah diset!");
+                throw new Error("Browser Anda memblokir cookie. Coba matikan AdBlock/Privacy Shield.");
             }
 
             // 5. Reset attempts pada success
             try {
                 localStorage.removeItem('login_attempts');
                 localStorage.removeItem('login_lock_until');
+                sessionStorage.removeItem('csrf_token');
             } catch (e) {
                 console.warn('Failed to clear localStorage');
             }
             setAttempts(0);
 
-            // 6. Hapus CSRF token setelah digunakan
-            try {
-                sessionStorage.removeItem('csrf_token');
-            } catch (e) {
-                console.warn('Failed to remove CSRF token');
-            }
-
             // 7. Log success
             console.log(`[LOGIN SUCCESS] Admin: ${email.substring(0, 3)}***`);
 
             // 8. Redirect PAKSA (Hard Reload)
-            // Menggunakan window.location.href untuk memaksa browser refresh total
-            // agar cookie terbaca sempurna oleh Middleware
+            // Refresh sangat penting agar Middleware membaca cookie baru
             await delay(500);
             window.location.href = returnUrl;
 
