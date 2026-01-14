@@ -9,7 +9,7 @@ import Link from "next/link";
 // IMPORT SUPABASE CLIENT
 import { supabase } from "../../../lib/supabase";
 
-// --- HELPER FUNCTIONS (Tetap sama) ---
+// --- HELPER FUNCTIONS ---
 
 // Helper untuk encrypt session sederhana
 const encryptSession = (data: object): string => {
@@ -50,10 +50,9 @@ const isStrongPassword = (password: string): boolean => {
 };
 
 // --- KOMPONEN UTAMA (ISI FORM) ---
-// Kita ubah nama fungsi utama Anda menjadi 'LoginForm'
 function LoginForm() {
     const router = useRouter();
-    const searchParams = useSearchParams(); // Ini yang butuh Suspense
+    const searchParams = useSearchParams();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -271,8 +270,9 @@ function LoginForm() {
             // 7. Log success (dalam production, kirim ke logging service)
             console.log(`[LOGIN SUCCESS] Admin: ${email.substring(0, 3)}***`);
 
-            // 8. Redirect dengan delay kecil
+            // 8. Redirect dengan delay kecil & REFRESH (PERBAIKAN UTAMA DISINI)
             await delay(300);
+            router.refresh(); // <--- INI WAJIB ADA AGAR DATA USER TER-UPDATE
             router.push(returnUrl);
 
         } catch (error: unknown) {
@@ -328,7 +328,6 @@ function LoginForm() {
 
     const remainingTime = getRemainingTime();
 
-    // RETURN JSX ASLINYA (TIDAK ADA YANG DIUBAH DI UI)
     return (
         <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 relative overflow-hidden">
             {/* Background Decor */}
@@ -530,7 +529,6 @@ function LoginForm() {
 }
 
 // --- Wrapper Component dengan Suspense ---
-// Ini yang diekspor sebagai default page
 export default function AdminLoginPage() {
     return (
         <Suspense fallback={
