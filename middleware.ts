@@ -1,111 +1,80 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// --- 1. CONFIGURATION ---
-// Simple in-memory rate limiting (Note: Reset saat redeploy/cold start di Vercel)
-interface RateLimitData {
-    count: number;
-    resetTime: number;
-}
-
-const rateLimitStore: Record<string, RateLimitData> = {};
+// --- CONFIGURATION ---
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 menit
 const MAX_REQUESTS = 100; // Maks 100 request per IP
 
-let lastCleanup = Date.now();
+// In-memory store (Reset saat redeploy di Vercel, ini wajar)
+const rateLimitStore: Record<string, { count: number; resetTime: number }> = {};
 
-// --- 2. HELPER FUNCTIONS ---
-function cleanupRateLimitStore() {
-    const currentTime = Date.now();
-    // Cleanup tiap 5 menit
-    if (currentTime - lastCleanup > 5 * 60 * 1000) {
-        const ips = Object.keys(rateLimitStore);
-        for (const ip of ips) {
-            const data = rateLimitStore[ip];
-            if (data && currentTime > data.resetTime + (60 * 60 * 1000)) {
-                delete rateLimitStore[ip];
-            }
-        }
-        lastCleanup = currentTime;
-    }
-}
-
-// --- 3. MAIN MIDDLEWARE ---
 export function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
-    // A. Dapatkan IP Address
-    let ip = 'unknown';
-    try {
-        ip = request.ip ||
-            request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-            'unknown';
-    } catch (error) {
-        console.error('Error getting IP:', error);
-    }
+    // --- 1. RATE LIMITING (Sederhana) ---
+    // Skip untuk asset static, gambar, dan file internal Next.js
+    const isStatic = path.match(/\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot|mp4|webp)$/i) || path.startsWith('/_next');
 
-    // B. Rate Limiting Logic (Skip untuk asset static)
-    cleanupRateLimitStore();
+    if (!isStatic) {
+        // Ambil IP dengan cara yang aman
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 
-    const isStaticAsset = path.match(/\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot|mp4|webp)$/i);
-    const isPublicFile = path.startsWith('/_next/') || path === '/favicon.ico' || path.startsWith('/public/');
+        if (ip !== 'unknown') {
+            const now = Date.now();
+            const record = rateLimitStore[ip] || { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
 
-    if (!isStaticAsset && !isPublicFile && ip !== 'unknown') {
-        const currentTime = Date.now();
-        const ipData = rateLimitStore[ip] || { count: 0, resetTime: currentTime + RATE_LIMIT_WINDOW };
+            if (now > record.resetTime) {
+                record.count = 0;
+                record.resetTime = now + RATE_LIMIT_WINDOW;
+            }
 
-        if (currentTime > ipData.resetTime) {
-            ipData.count = 0;
-            ipData.resetTime = currentTime + RATE_LIMIT_WINDOW;
-        }
+            record.count++;
+            rateLimitStore[ip] = record;
 
-        ipData.count++;
-        rateLimitStore[ip] = ipData;
-
-        if (ipData.count > MAX_REQUESTS) {
-            return new NextResponse(
-                JSON.stringify({ error: 'Terlalu banyak permintaan. Coba lagi nanti.' }),
-                { status: 429, headers: { 'Content-Type': 'application/json' } }
-            );
+            if (record.count > MAX_REQUESTS) {
+                return new NextResponse(
+                    JSON.stringify({ error: 'Too many requests' }),
+                    { status: 429, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
         }
     }
 
-    // C. Siapkan Response
-    const response = NextResponse.next();
+    // --- 2. PROTEKSI ADMIN (INTI MASALAH LOGIN LOOP ADA DISINI) ---
 
-    // D. Security Headers (PENTING)
-    const securityHeaders = [
-        ['X-Content-Type-Options', 'nosniff'],
-        ['X-Frame-Options', 'DENY'],
-        ['X-XSS-Protection', '1; mode=block'],
-        ['Referrer-Policy', 'strict-origin-when-cross-origin'],
-        ['Permissions-Policy', 'camera=(), microphone=(), geolocation=()'],
-    ];
+    // Kita gunakan .startsWith() agar lebih aman menangani trailing slash
+    const isAdminArea = path.startsWith('/admin') || path.startsWith('/dashboard');
+    const isLoginPage = path.startsWith('/admin/login');
 
-    securityHeaders.forEach(([key, value]) => {
-        response.headers.set(key, value);
-    });
-
-    // E. Proteksi Route Admin (AUTH CHECK)
-    // Kita gunakan logic manual cookie 'admin_session' agar sesuai dengan API Login Anda
-    const isAdminRoute = path.startsWith('/admin');
-    const isDashboardRoute = path.startsWith('/dashboard');
-    const isLoginRoute = path === '/admin/login' || path === '/login';
-
-    if ((isAdminRoute || isDashboardRoute) && !isLoginRoute) {
+    // Jika user mencoba masuk area Admin DAN bukan sedang di halaman Login
+    if (isAdminArea && !isLoginPage) {
         const adminSession = request.cookies.get('admin_session');
 
-        // Jika tidak ada cookie sesi admin, tendang ke login
+        // Debugging Log (Bisa dilihat di Vercel Logs)
         if (!adminSession?.value) {
+            // console.log(`[Middleware] 🔴 Akses ditolak ke ${path}: Cookie tidak ditemukan.`);
+
             const loginUrl = new URL('/admin/login', request.url);
-            // Simpan url tujuan untuk redirect balik setelah login
+            // Simpan halaman tujuan agar bisa redirect balik nanti
             loginUrl.searchParams.set('returnUrl', path);
             return NextResponse.redirect(loginUrl);
         }
+
+        // Jika cookie ada, biarkan lewat
+        // console.log(`[Middleware] 🟢 Akses diizinkan ke ${path}`);
     }
 
-    // F. Proteksi API Routes (CORS)
+    // --- 3. RESPONSE & HEADERS ---
+    const response = NextResponse.next();
+
+    // Security Headers Standard
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+    // CORS untuk API Routes
     if (path.startsWith('/api')) {
+        response.headers.set('Access-Control-Allow-Origin', '*');
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
@@ -113,9 +82,14 @@ export function middleware(request: NextRequest) {
     return response;
 }
 
-// --- 4. MATCHER CONFIG ---
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         */
+        '/((?!_next/static|_next/image|favicon.ico).*)',
     ],
 };

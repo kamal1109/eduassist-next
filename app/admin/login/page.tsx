@@ -239,12 +239,13 @@ function LoginForm() {
             }
 
             // 4. SET COOKIE dengan atribut keamanan
+            // PERBAIKAN PENTING: SameSite=Lax (Bukan Strict)
             const isProduction = process.env.NODE_ENV === 'production';
             const cookieOptions = [
                 `admin_session=${encodeURIComponent(sessionString)}`,
                 `path=/`,
                 `max-age=${24 * 60 * 60}`,
-                `SameSite=Strict`,
+                `SameSite=Lax`, // <--- WAJIB 'LAX' UNTUK REDIRECT LOGIN
                 isProduction ? 'Secure' : '',
                 'HttpOnly=false' // Karena client-side
             ].filter(Boolean).join('; ');
@@ -267,12 +268,13 @@ function LoginForm() {
                 console.warn('Failed to remove CSRF token');
             }
 
-            // 7. Log success (dalam production, kirim ke logging service)
+            // 7. Log success
             console.log(`[LOGIN SUCCESS] Admin: ${email.substring(0, 3)}***`);
 
-            // 8. Redirect dengan delay kecil & REFRESH (PERBAIKAN UTAMA DISINI)
+            // 8. Redirect & REFRESH
+            // Refresh sangat penting agar Middleware membaca cookie baru
             await delay(300);
-            router.refresh(); // <--- INI WAJIB ADA AGAR DATA USER TER-UPDATE
+            router.refresh();
             router.push(returnUrl);
 
         } catch (error: unknown) {
