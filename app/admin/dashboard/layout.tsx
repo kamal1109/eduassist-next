@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase"; // Gunakan client yang sudah kita buat sebelumnya
 import {
     Home,
     Inbox,
@@ -15,14 +15,9 @@ import {
     LogOut,
     Menu,
     X,
-    ChevronRight
+    ChevronRight,
+    Loader2
 } from "lucide-react";
-
-// Setup Supabase
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function DashboardLayout({
     children,
@@ -30,16 +25,39 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isChecking, setIsChecking] = useState(true); // State loading untuk cek user
     const pathname = usePathname();
     const router = useRouter();
 
-    // Fungsi Logout
+    // --- PROTEKSI KEAMANAN: CEK USER SETIAP KALI PINDAH HALAMAN ---
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                // Jika tidak ada sesi aktif di Supabase, hapus cookie manual dan tendang ke login
+                document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+                router.push("/admin/login");
+            } else {
+                setIsChecking(false);
+            }
+        };
+
+        checkUser();
+    }, [pathname, router]);
+
+    // Fungsi Logout (DIPERBAIKI)
     const handleLogout = async () => {
         const confirmLogout = confirm("Yakin ingin keluar dari Admin?");
         if (confirmLogout) {
+            // 1. Logout dari Supabase
             await supabase.auth.signOut();
-            document.cookie = "admin_session=; path=/; max-age=0"; // Hapus cookie manual
-            router.push("/admin/login");
+
+            // 2. Hapus cookie admin_session secara total
+            document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+
+            // 3. Paksa pindah ke halaman login
+            window.location.href = "/admin/login";
         }
     };
 
@@ -59,8 +77,17 @@ export default function DashboardLayout({
         { name: "Analytics", href: "/admin/dashboard/analytics", icon: BarChart3 },
     ];
 
-    // Helper untuk cek menu aktif (Exact match atau sub-path)
     const isActive = (path: string) => pathname === path || (path !== '/admin/dashboard' && pathname.startsWith(path));
+
+    // Jika sedang mengecek keamanan, tampilkan loading layar penuh
+    if (isChecking) {
+        return (
+            <div className="h-screen w-screen flex flex-col items-center justify-center bg-white">
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+                <p className="text-slate-400 font-bold text-sm tracking-widest">MEMERIKSA OTORITAS...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -74,7 +101,6 @@ export default function DashboardLayout({
           ${sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}
         `}
             >
-                {/* Logo Area */}
                 <div className="h-16 flex items-center px-6 border-b border-slate-100 justify-between md:justify-start">
                     <div className="flex items-center gap-2">
                         <span className="text-xl font-black text-indigo-600 tracking-tighter">
@@ -92,10 +118,7 @@ export default function DashboardLayout({
                     </button>
                 </div>
 
-                {/* Menu Items */}
                 <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
-
-                    {/* Group 1: Main */}
                     <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-2">
                         Utama
                     </p>
@@ -105,8 +128,8 @@ export default function DashboardLayout({
                             href={item.href}
                             onClick={() => setSidebarOpen(false)}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive(item.href)
-                                    ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
+                                ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
                                 }`}
                         >
                             <item.icon size={18} className={isActive(item.href) ? "text-indigo-600" : "text-slate-400"} />
@@ -115,7 +138,6 @@ export default function DashboardLayout({
                         </Link>
                     ))}
 
-                    {/* Group 2: Content */}
                     <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-6">
                         Konten
                     </p>
@@ -125,8 +147,8 @@ export default function DashboardLayout({
                             href={item.href}
                             onClick={() => setSidebarOpen(false)}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive(item.href)
-                                    ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
+                                ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
                                 }`}
                         >
                             <item.icon size={18} className={isActive(item.href) ? "text-indigo-600" : "text-slate-400"} />
@@ -134,7 +156,6 @@ export default function DashboardLayout({
                         </Link>
                     ))}
 
-                    {/* Group 3: System */}
                     <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-6">
                         Sistem
                     </p>
@@ -144,8 +165,8 @@ export default function DashboardLayout({
                             href={item.href}
                             onClick={() => setSidebarOpen(false)}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive(item.href)
-                                    ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
+                                ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
                                 }`}
                         >
                             <item.icon size={18} className={isActive(item.href) ? "text-indigo-600" : "text-slate-400"} />
@@ -154,7 +175,6 @@ export default function DashboardLayout({
                     ))}
                 </nav>
 
-                {/* Bottom Actions */}
                 <div className="p-4 border-t border-slate-100 space-y-2">
                     <Link
                         href="/"
@@ -177,8 +197,6 @@ export default function DashboardLayout({
 
             {/* --- MAIN CONTENT AREA --- */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-
-                {/* Mobile Header (Hanya muncul di HP) */}
                 <header className="md:hidden bg-white border-b border-slate-200 h-16 flex items-center px-4 shrink-0 justify-between absolute top-0 left-0 right-0 z-40">
                     <div className="flex items-center gap-3">
                         <button onClick={() => setSidebarOpen(true)} className="text-slate-500 p-1">
@@ -188,8 +206,6 @@ export default function DashboardLayout({
                     </div>
                 </header>
 
-                {/* Content Children (Scrollable) */}
-                {/* Tambahkan padding-top di mobile agar tidak tertutup header */}
                 <main className="flex-1 overflow-y-auto bg-slate-50 relative pt-16 md:pt-0 scroll-smooth">
                     {children}
                 </main>

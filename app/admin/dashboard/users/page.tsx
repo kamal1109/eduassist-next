@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import {
-    Trash2, Shield, UserPlus, AlertTriangle, CheckCircle, Loader2, ChevronRight
+    Trash2, Shield, UserPlus, AlertTriangle, CheckCircle, Loader2, ChevronRight, Lock
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase"; // Import aman
-import { getAdminList, createNewAdmin, deleteAdmin } from "@/app/actions/admin"; // Import server action
+import { supabase } from "@/lib/supabase";
+import { getAdminList, createNewAdmin, deleteAdmin } from "@/app/actions/admin";
 
 export default function UsersPage() {
     const router = useRouter();
@@ -15,20 +15,34 @@ export default function UsersPage() {
     // --- STATE DATA ---
     const [admins, setAdmins] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     // --- STATE FORM ---
     const [showForm, setShowForm] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-    // 1. Load Data saat halaman dibuka
+    // 1. Load Data & Validasi Sesi
     useEffect(() => {
-        loadAdmins();
-    }, []);
+        const initPage = async () => {
+            setIsLoading(true);
+
+            // Cek sesi user yang sedang login
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                router.push("/admin/login");
+                return;
+            }
+
+            setCurrentUser(session.user);
+            await loadAdmins();
+        };
+
+        initPage();
+    }, [router]);
 
     const loadAdmins = async () => {
-        setIsLoading(true);
-        // Kita ambil data dari Server Action (auth.users)
         const data = await getAdminList();
         setAdmins(data || []);
         setIsLoading(false);
@@ -37,6 +51,10 @@ export default function UsersPage() {
     // 2. Handle Tambah Admin Baru
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        // Proteksi Tambahan: Hanya email terdaftar tertentu yang bisa tambah admin (Opsional)
+        // Jika ingin lebih ketat, logic ini harus ada di Server Action (createNewAdmin)
+
         setIsSubmitting(true);
         setMessage(null);
 
@@ -48,7 +66,7 @@ export default function UsersPage() {
         } else {
             setMessage({ type: 'success', text: "Admin baru berhasil ditambahkan!" });
             setShowForm(false);
-            loadAdmins(); // Refresh tabel otomatis
+            loadAdmins();
             (e.target as HTMLFormElement).reset();
         }
         setIsSubmitting(false);
@@ -56,131 +74,163 @@ export default function UsersPage() {
 
     // 3. Handle Hapus Admin
     const handleDelete = async (id: string, email: string) => {
-        if (!confirm(`Yakin ingin MENGHAPUS akses login untuk ${email}?`)) return;
+        // Jangan biarkan user menghapus dirinya sendiri
+        if (id === currentUser?.id) {
+            alert("Anda tidak bisa menghapus akun Anda sendiri demi alasan keamanan.");
+            return;
+        }
+
+        if (!confirm(`PERINGATAN: Menghapus ${email} akan menghilangkan akses login mereka selamanya. Lanjutkan?`)) return;
 
         const res = await deleteAdmin(id, email);
         if (res.error) {
             alert("GAGAL: " + res.error);
         } else {
-            alert("Sukses! User berhasil dihapus.");
+            alert("Sukses! Akses admin telah dicabut.");
             loadAdmins();
         }
     };
 
+    if (isLoading && !currentUser) {
+        return (
+            <div className="h-screen w-full flex flex-col items-center justify-center bg-white">
+                <Loader2 className="animate-spin text-indigo-600 w-10 h-10 mb-4" />
+                <p className="text-slate-400 font-bold text-xs tracking-widest">MEMUAT SISTEM KEAMANAN...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full min-h-full bg-[#F8FAFC]">
 
-            {/* --- HEADER STICKY --- */}
+            {/* --- HEADER --- */}
             <div className="sticky top-0 z-20 bg-[#F8FAFC]/90 backdrop-blur-md border-b border-slate-200 px-4 py-4 sm:px-8 sm:py-6">
                 <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                            <Link href="/admin/dashboard" className="font-bold hover:text-indigo-600">Dashboard</Link>
+                            <Link href="/admin/dashboard" className="font-bold hover:text-indigo-600 transition">Dashboard</Link>
                             <ChevronRight size={14} />
-                            <span className="text-indigo-600 font-bold">Users</span>
+                            <span className="text-indigo-600 font-bold">Akses Kontrol</span>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Manajemen Admin</h1>
+                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Manajemen User</h1>
                     </div>
                     <button
                         onClick={() => setShowForm(!showForm)}
-                        className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition flex items-center gap-2 text-sm"
+                        className={`px-5 py-2.5 rounded-xl font-bold transition flex items-center gap-2 text-sm shadow-lg ${showForm
+                                ? "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-none"
+                                : "bg-slate-900 text-white hover:bg-indigo-600 shadow-indigo-100"
+                            }`}
                     >
-                        {showForm ? "Batal Tambah" : <><UserPlus size={18} /> Tambah Admin</>}
+                        {showForm ? "Tutup Form" : <><UserPlus size={18} /> Tambah Akun Admin</>}
                     </button>
                 </div>
             </div>
 
-            {/* --- MAIN CONTENT --- */}
             <div className="p-4 sm:p-8 max-w-7xl mx-auto pb-24">
 
-                {/* FORM INPUT ADMIN BARU */}
+                {/* FORM INPUT DENGAN DESAIN BARU */}
                 {showForm && (
-                    <div className="bg-white border border-indigo-100 p-6 rounded-2xl shadow-sm mb-8 animate-in slide-in-from-top-4">
-                        <h3 className="font-bold text-slate-900 mb-4">Input Data Admin Baru</h3>
-                        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 items-start">
-                            <div className="flex-1 w-full">
-                                <input name="email" type="email" placeholder="Email Login" required className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none text-sm" />
+                    <div className="bg-white border border-indigo-100 p-8 rounded-3xl shadow-sm mb-10 animate-in slide-in-from-top-4 duration-300">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><Lock size={20} /></div>
+                            <div>
+                                <h3 className="font-black text-slate-900">Registrasi Admin Baru</h3>
+                                <p className="text-xs text-slate-500">Gunakan email aktif untuk kredensial login.</p>
                             </div>
-                            <div className="flex-1 w-full">
-                                <input name="password" type="password" placeholder="Password (Min. 6 Karakter)" required minLength={6} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none text-sm" />
+                        </div>
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div className="md:col-span-1">
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">Alamat Email</label>
+                                <input name="email" type="email" placeholder="contoh@eduassist.id" required className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none text-sm transition-all" />
                             </div>
-                            <button type="submit" disabled={isSubmitting} className="w-full md:w-auto bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 text-sm">
-                                {isSubmitting ? "Menyimpan..." : "Simpan Admin"}
-                            </button>
+                            <div className="md:col-span-1">
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">Password Baru</label>
+                                <input name="password" type="password" placeholder="Min. 6 Karakter" required minLength={6} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none text-sm transition-all" />
+                            </div>
+                            <div className="flex items-end">
+                                <button type="submit" disabled={isSubmitting} className="w-full bg-indigo-600 text-white px-6 py-3.5 rounded-2xl font-black hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100 disabled:opacity-50">
+                                    {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={20} /> : "AKTIFKAN AKSES"}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 )}
 
-                {/* NOTIFIKASI */}
                 {message && (
-                    <div className={`p-4 rounded-xl mb-6 flex items-center gap-3 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                    <div className={`p-4 rounded-2xl mb-8 flex items-center gap-3 border animate-in fade-in ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
                         {message.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
                         <span className="font-bold text-sm">{message.text}</span>
                     </div>
                 )}
 
                 {/* TABEL LIST ADMIN */}
-                <div className="bg-white rounded-[2rem] border border-slate-100 p-6 md:p-8 shadow-sm">
-                    <h3 className="text-lg font-black text-slate-900 mb-6">Daftar Admin Aktif</h3>
+                <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+                    <div className="p-8 border-b border-slate-50">
+                        <h3 className="text-xl font-black text-slate-900">Otoritas Aktif</h3>
+                        <p className="text-sm text-slate-400 font-medium">Daftar akun yang memiliki akses ke Dashboard EduAssist.</p>
+                    </div>
 
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
-                            <Loader2 className="animate-spin text-indigo-600" />
-                            <span className="text-sm">Memuat data user...</span>
-                        </div>
-                    ) : admins.length === 0 ? (
-                        <div className="text-center py-10 text-slate-400">Belum ada data admin.</div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                        <th className="pb-4 pl-2">Email Admin</th>
-                                        <th className="pb-4">Role</th>
-                                        <th className="pb-4 hidden sm:table-cell">Terdaftar</th>
-                                        <th className="pb-4 text-right pr-2">Aksi</th>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-slate-50/50">
+                                <tr className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                    <th className="py-4 px-8">Email Pengguna</th>
+                                    <th className="py-4 px-4 text-center">Tingkat Akses</th>
+                                    <th className="py-4 px-4 hidden sm:table-cell text-center">Bergabung Pada</th>
+                                    <th className="py-4 px-8 text-right">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {admins.map((admin) => (
+                                    <tr key={admin.id} className={`group hover:bg-slate-50/80 transition-colors ${admin.id === currentUser?.id ? 'bg-indigo-50/30' : ''}`}>
+                                        <td className="py-5 px-8">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-black text-slate-800">{admin.email}</span>
+                                                {admin.id === currentUser?.id && (
+                                                    <span className="text-[9px] font-bold text-indigo-500 uppercase mt-0.5 tracking-tighter">(Sesi Anda Saat Ini)</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="py-5 px-4 text-center">
+                                            <div className="flex justify-center">
+                                                {admin.is_super_admin ? (
+                                                    <div className="bg-amber-100 text-amber-700 text-[9px] px-3 py-1 rounded-full font-black flex items-center gap-1.5 border border-amber-200">
+                                                        <Shield size={12} strokeWidth={3} /> SUPER ADMIN
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-slate-500 bg-slate-100 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-slate-200">
+                                                        Standard Admin
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="py-5 px-4 hidden sm:table-cell text-center">
+                                            <span className="text-xs font-bold text-slate-400">
+                                                {new Date(admin.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </span>
+                                        </td>
+                                        <td className="py-5 px-8 text-right">
+                                            {admin.is_super_admin || admin.id === currentUser?.id ? (
+                                                <div className="p-2 text-slate-200 inline-block" title="Akses dilindungi">
+                                                    <Lock size={18} />
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleDelete(admin.id, admin.email)}
+                                                    className="text-slate-400 hover:text-rose-600 p-2 rounded-xl hover:bg-rose-50 transition-all active:scale-90"
+                                                    title="Cabut Akses Admin"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="text-sm font-medium text-slate-600">
-                                    {admins.map((admin) => (
-                                        <tr key={admin.id} className="group hover:bg-slate-50 transition">
-                                            <td className="py-4 pl-2 border-b border-slate-50 text-slate-900 font-bold">
-                                                {admin.email}
-                                            </td>
-                                            <td className="py-4 border-b border-slate-50">
-                                                {admin.is_super_admin ? (
-                                                    <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-1 rounded-md uppercase tracking-wide font-black border border-amber-200 flex items-center gap-1 w-fit">
-                                                        <Shield size={10} /> SUPER ADMIN
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md text-[10px] font-bold uppercase border border-indigo-100">
-                                                        Admin
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="py-4 border-b border-slate-50 hidden sm:table-cell">
-                                                {new Date(admin.created_at).toLocaleDateString('id-ID')}
-                                            </td>
-                                            <td className="py-4 pr-2 border-b border-slate-50 text-right">
-                                                {admin.is_super_admin ? (
-                                                    <button disabled className="text-slate-300 cursor-not-allowed p-2" title="Super Admin tidak bisa dihapus">
-                                                        <Shield size={18} />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleDelete(admin.id, admin.email)}
-                                                        className="text-slate-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition"
-                                                        title="Hapus Akses Login"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {admins.length === 0 && !isLoading && (
+                        <div className="p-20 text-center text-slate-300 font-bold italic">Data otoritas kosong.</div>
                     )}
                 </div>
             </div>

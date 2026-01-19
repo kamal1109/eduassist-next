@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase"; // Import aman
+import { supabase } from "@/lib/supabase";
 
 function LoginForm() {
     const router = useRouter();
@@ -15,10 +15,24 @@ function LoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingSession, setIsCheckingSession] = useState(true); // State loading awal
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
-    // --- LOGIC LOGIN YANG DIPERBAIKI ---
+    // --- PROTEKSI: CEK APAKAH SUDAH LOGIN? ---
+    useEffect(() => {
+        const checkActiveSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // Jika sudah login, langsung ke dashboard
+                router.replace('/admin/dashboard');
+            } else {
+                setIsCheckingSession(false);
+            }
+        };
+        checkActiveSession();
+    }, [router]);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -35,17 +49,12 @@ function LoginForm() {
             if (!data.user) throw new Error("User tidak ditemukan.");
 
             // 2. Set Cookie Manual (Agar Middleware Server Baca)
-            // Penting: max-age diset sama dengan sesi Supabase (misal 24 jam)
-            document.cookie = `admin_session=true; path=/; max-age=86400; SameSite=Lax`;
+            // Menggunakan max-age 24 jam
+            document.cookie = `admin_session=true; path=/; max-age=86400; SameSite=Lax; Secure`;
 
-            // 3. HARD RELOAD (SOLUSI UTAMA)
-            // Memaksa browser muat ulang penuh ke halaman tujuan.
-            // Ini memastikan Middleware Server membaca cookie terbaru.
-            console.log("Login sukses, mengalihkan...");
-
-            setTimeout(() => {
-                window.location.href = returnUrl;
-            }, 500);
+            // 3. HARD RELOAD
+            // Penting agar Middleware mendeteksi cookie baru di request selanjutnya
+            window.location.href = returnUrl;
 
         } catch (error: any) {
             console.error("Login Error:", error.message);
@@ -57,6 +66,15 @@ function LoginForm() {
             setIsLoading(false);
         }
     };
+
+    // Tampilkan loading screen saat mengecek sesi awal
+    if (isCheckingSession) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+            </div>
+        );
+    }
 
     return (
         <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 relative overflow-hidden">
@@ -90,7 +108,6 @@ function LoginForm() {
                 )}
 
                 <form onSubmit={handleLogin} className="flex flex-col gap-5">
-                    {/* Input Email */}
                     <div className="relative group">
                         <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
                         <input
@@ -103,7 +120,6 @@ function LoginForm() {
                         />
                     </div>
 
-                    {/* Input Password */}
                     <div className="relative group">
                         <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
                         <input
@@ -123,7 +139,6 @@ function LoginForm() {
                         </button>
                     </div>
 
-                    {/* Tombol Login */}
                     <button
                         type="submit"
                         disabled={isLoading}
@@ -156,7 +171,6 @@ function LoginForm() {
     );
 }
 
-//Wrapper Component dengan Suspense (Wajib di Next.js App Router)
 export default function AdminLoginPage() {
     return (
         <Suspense fallback={
