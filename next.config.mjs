@@ -2,9 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['mxrmjlkkzpyuptcqboqk.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'mxrmjlkkzpyuptcqboqk.supabase.co',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 }
 
-// Ganti module.exports menjadi export default
 export default nextConfig;

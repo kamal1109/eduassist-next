@@ -1,4 +1,5 @@
-// Utility functions untuk auth
+// Utility functions untuk validasi input Auth
+
 export const validateEmail = (email: string): boolean => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -20,6 +21,7 @@ export const validatePassword = (password: string): { isValid: boolean; errors: 
 };
 
 export const generateSessionToken = (): string => {
+    // Generate random string untuk session ID manual (jika diperlukan)
     return Array.from(crypto.getRandomValues(new Uint8Array(32)))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');

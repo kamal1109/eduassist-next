@@ -11,14 +11,9 @@ import {
     ArrowRight,
     Send,
     BarChart3,
-    CheckCircle,
-    ShieldAlert,
-    Sparkles,
-    MessageCircle,
-    Star,
-    Package,
     Check,
-    Zap
+    MessageCircle,
+    ShieldAlert
 } from "lucide-react";
 import Link from "next/link";
 
@@ -57,7 +52,7 @@ export default function TentangPage() {
         <main className="bg-[#F8FAFC] text-slate-900 overflow-x-hidden min-h-screen selection:bg-indigo-100 selection:text-indigo-700">
 
             {/* --- HERO SECTION --- */}
-            <section className="relative pt-24 pb-16 md:pt-32 md:pb-20 px-6 overflow-hidden bg-white">
+            <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-6 overflow-hidden bg-white">
                 <div className="absolute top-0 inset-x-0 h-full bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-50/70 via-white to-transparent -z-10"></div>
 
                 <div className="container mx-auto max-w-6xl flex flex-col items-center justify-center text-center">
@@ -95,10 +90,20 @@ export default function TentangPage() {
                     </motion.p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
-                        <Link href="https://wa.me/6285236110219" className="w-full sm:w-auto bg-slate-900 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 active:scale-95 flex items-center justify-center gap-3 group">
+                        <Link
+                            href="https://wa.me/6285236110219"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto bg-slate-900 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 active:scale-95 flex items-center justify-center gap-3 group"
+                        >
                             Konsultasi via WhatsApp <MessageCircle size={22} className="group-hover:rotate-12 transition-transform" />
                         </Link>
-                        <Link href="https://id.shp.ee/RoYtQCu" target="_blank" className="w-full sm:w-auto bg-white text-slate-900 border border-slate-200 px-8 md:px-10 py-4 md:py-5 rounded-2xl font-bold text-lg hover:border-indigo-400 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3">
+                        <Link
+                            href="https://id.shp.ee/RoYtQCu"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto bg-white text-slate-900 border border-slate-200 px-8 md:px-10 py-4 md:py-5 rounded-2xl font-bold text-lg hover:border-indigo-400 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3"
+                        >
                             Lihat di Shopee <ShoppingBag size={22} className="text-orange-500" />
                         </Link>
                     </div>
@@ -243,6 +248,8 @@ export default function TentangPage() {
                     <div className="relative z-10 flex flex-col sm:flex-row gap-4">
                         <Link
                             href="https://wa.me/6285236110219"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="bg-white text-indigo-600 px-12 py-6 rounded-3xl font-black text-xl shadow-2xl hover:bg-slate-900 hover:text-white transition-all whitespace-nowrap active:scale-95 flex items-center justify-center gap-3 group/btn"
                         >
                             <MessageCircle size={24} />
@@ -252,6 +259,7 @@ export default function TentangPage() {
                         <Link
                             href="https://id.shp.ee/RoYtQCu"
                             target="_blank"
+                            rel="noopener noreferrer"
                             className="bg-indigo-500 text-white px-12 py-6 rounded-3xl font-black text-xl shadow-2xl hover:bg-orange-600 transition-all whitespace-nowrap active:scale-95 flex items-center justify-center gap-3"
                         >
                             <ShoppingBag size={24} />
@@ -275,7 +283,12 @@ export default function TentangPage() {
                         <span className="text-indigo-600">Hari Ini?</span>
                     </motion.h2>
 
-                    <Link href="https://wa.me/6285236110219" className="inline-flex items-center gap-4 bg-indigo-600 text-white px-10 md:px-16 py-5 md:py-7 rounded-[2rem] font-black text-xl md:text-2xl shadow-xl hover:bg-slate-900 transition-all hover:scale-105 active:scale-95 group">
+                    <Link
+                        href="https://wa.me/6285236110219"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-4 bg-indigo-600 text-white px-10 md:px-16 py-5 md:py-7 rounded-[2rem] font-black text-xl md:text-2xl shadow-xl hover:bg-slate-900 transition-all hover:scale-105 active:scale-95 group"
+                    >
                         Mulai Konsultasi Sekarang
                         <MessageCircle size={28} className="group-hover:translate-x-1 transition-transform" />
                     </Link>

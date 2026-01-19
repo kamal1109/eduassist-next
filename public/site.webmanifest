@@ -1,0 +1,25 @@
+{
+    "name": "EduAssist | Jasa Kuesioner No.1",
+    "short_name": "EduAssist",
+    "description": "Solusi cari responden kuesioner kilat & valid. Garansi uang kembali jika data tidak reliabel.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4f46e5",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

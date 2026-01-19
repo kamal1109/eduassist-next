@@ -1,21 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr';
 
-// Ambil kunci dari Environment Variables
+// Validasi Env Vars agar tidak error "undefined"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Debug (Hanya akan muncul di Console Browser saat Inspect)
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('🚨 Supabase Env Vars missing!');
-} else {
-    console.log('🔗 Supabase initialized with URL:', supabaseUrl);
+if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase Environment Variables");
 }
 
-// Buat client Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-        persistSession: true, // SAYA UBAH JADI TRUE (Supaya kalau refresh tidak logout)
-        autoRefreshToken: true,
-        detectSessionInUrl: false
-    }
-})
+// Gunakan createBrowserClient agar Cookies Auth otomatis tersimpan di browser
+export const supabase = createBrowserClient(supabaseUrl, supabaseKey);
