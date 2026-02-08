@@ -1,4 +1,5 @@
 "use client";
+
 import { motion } from "framer-motion";
 import {
     Target,
@@ -7,15 +8,14 @@ import {
     ShieldCheck,
     TrendingUp,
     Heart,
-    ShoppingBag,
-    ArrowRight,
     Send,
     BarChart3,
     Check,
     MessageCircle,
-    ShieldAlert
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 export default function TentangPage() {
     const stats = [
@@ -48,31 +48,67 @@ export default function TentangPage() {
         }
     ];
 
-    return (
-        <main className="bg-[#F8FAFC] text-slate-900 overflow-x-hidden min-h-screen selection:bg-indigo-100 selection:text-indigo-700">
+    // Array logo kampus 1-36
+    const campusLogos = Array.from({ length: 36 }, (_, i) => `/kampus/${i + 1}.png`);
 
-            {/* --- HERO SECTION --- */}
-            <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-6 overflow-hidden bg-white">
+    // Duplikasi logo 3x agar scrolling terlihat 'infinite' (tidak putus)
+    const infiniteLogos = [...campusLogos, ...campusLogos, ...campusLogos];
+
+    // --- LOGIC AUTO SCROLL + DRAG ---
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isPaused, setIsPaused] = useState(false);
+
+    useEffect(() => {
+        const scrollContainer = scrollRef.current;
+        if (!scrollContainer) return;
+
+        let animationFrameId: number;
+        const speed = 0.5; // Kecepatan scroll
+
+        const scroll = () => {
+            if (!isPaused) {
+                if (scrollContainer.scrollLeft >= (scrollContainer.scrollWidth / 3)) {
+                    scrollContainer.scrollLeft = 0;
+                } else {
+                    scrollContainer.scrollLeft += speed;
+                }
+            }
+            animationFrameId = requestAnimationFrame(scroll);
+        };
+
+        animationFrameId = requestAnimationFrame(scroll);
+
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [isPaused]);
+
+    return (
+        <main className="bg-[#F8FAFC] text-slate-900 overflow-x-hidden min-h-screen selection:bg-indigo-100 selection:text-indigo-700 font-sans">
+
+            {/* --- HERO SECTION (Updated to Match Home) --- */}
+            <section className="relative pt-28 pb-16 md:pt-40 md:pb-28 px-4 sm:px-6 overflow-hidden bg-white border-b border-slate-100">
                 <div className="absolute top-0 inset-x-0 h-full bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-50/70 via-white to-transparent -z-10"></div>
 
-                <div className="container mx-auto max-w-6xl flex flex-col items-center justify-center text-center">
+                <div className="container mx-auto max-w-[1600px] flex flex-col items-center justify-center text-center px-4 lg:px-20">
+
+                    {/* Badge Style: Identik dengan Home */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-full text-indigo-700 font-bold text-xs md:text-sm uppercase tracking-[0.15em] mb-8 shadow-sm"
+                        className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-indigo-700 font-bold text-xs md:text-sm uppercase tracking-[0.15em] mb-8 shadow-sm"
                     >
-                        <Target size={16} className="text-indigo-600" />
-                        Mengenal EduAssist
+                        <Target size={14} className="fill-indigo-500 text-indigo-500 animate-pulse" />
+                        <span>Mengenal EduAssist</span>
                     </motion.div>
 
+                    {/* Headline: Identik dengan Home */}
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-4xl md:text-7xl lg:text-8xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tight text-center"
+                        className="text-4xl md:text-7xl xl:text-8xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tighter"
                     >
                         Data Valid. <br />
-                        <span className="text-indigo-600 relative inline-block text-center">
+                        <span className="text-indigo-600 relative inline-block mx-2">
                             Lulus Lebih Cepat
                             <svg className="absolute -bottom-2 left-0 w-full h-3 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
                                 <path d="M0 5 Q 25 0 50 5 T 100 5" stroke="currentColor" strokeWidth="8" fill="transparent" />
@@ -80,38 +116,59 @@ export default function TentangPage() {
                         </span>
                     </motion.h1>
 
+                    {/* Description: Identik dengan Home */}
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-slate-500 text-base md:text-xl lg:text-2xl max-w-3xl mx-auto mb-10 md:mb-14 font-medium leading-relaxed text-center"
+                        className="text-slate-500 text-base md:text-xl lg:text-2xl max-w-4xl mx-auto mb-12 font-medium leading-relaxed"
                     >
                         EduAssist hadir untuk menghapus drama responden dalam riset Anda. Kami memastikan data yang Anda terima valid, reliabel, dan akurat untuk sidang skripsi tanpa hambatan.
                     </motion.p>
+                </div>
+            </section>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
-                        <Link
-                            href="https://wa.me/6285236110219"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full sm:w-auto bg-slate-900 text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 active:scale-95 flex items-center justify-center gap-3 group"
-                        >
-                            Konsultasi via WhatsApp <MessageCircle size={22} className="group-hover:rotate-12 transition-transform" />
-                        </Link>
-                        <Link
-                            href="https://id.shp.ee/RoYtQCu"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full sm:w-auto bg-white text-slate-900 border border-slate-200 px-8 md:px-10 py-4 md:py-5 rounded-2xl font-bold text-lg hover:border-indigo-400 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3"
-                        >
-                            Lihat di Shopee <ShoppingBag size={22} className="text-orange-500" />
-                        </Link>
+            {/* --- CAMPUS LOGO SECTION --- */}
+            <section className="py-16 bg-white border-y border-slate-100 overflow-hidden">
+                <div className="container mx-auto px-6 mb-12 text-center">
+                    <p className="text-slate-400 font-bold text-xs md:text-sm uppercase tracking-[0.3em] mb-2">
+                        Telah Membantu Mahasiswa & Peneliti Dari
+                    </p>
+                    <div className="h-1 w-12 bg-indigo-600 mx-auto rounded-full"></div>
+                </div>
+
+                {/* Logo Slider Container */}
+                <div
+                    ref={scrollRef}
+                    className="flex overflow-x-auto no-scrollbar cursor-grab active:cursor-grabbing py-4"
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                    onTouchStart={() => setIsPaused(true)}
+                    onTouchEnd={() => setIsPaused(false)}
+                >
+                    <div className="flex space-x-16 px-6">
+                        {infiniteLogos.map((logo, index) => (
+                            <div
+                                key={index}
+                                className="relative flex-none w-40 h-24 md:w-52 md:h-28 select-none"
+                            >
+                                <Image
+                                    src={logo}
+                                    alt={`Logo Kampus ${index}`}
+                                    fill
+                                    style={{ objectFit: 'contain' }}
+                                    sizes="(max-width: 768px) 160px, 208px"
+                                    className="drop-shadow-sm pointer-events-none"
+                                    draggable={false}
+                                />
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
             {/* --- STATS SECTION --- */}
-            <section className="py-20 bg-slate-100/50 border-y border-slate-200/60">
+            <section className="py-20 bg-slate-100/50">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {stats.map((stat, i) => (
@@ -139,7 +196,7 @@ export default function TentangPage() {
                 <div className="text-center mb-20">
                     <h2 className="text-3xl md:text-6xl lg:text-7xl font-black text-slate-900 mb-6 leading-tight tracking-tight text-center">
                         Langkah <br />
-                        <span className="text-indigo-600 relative inline-block">
+                        <span className="text-indigo-600 relative inline-block text-center">
                             Menuju Kelulusan
                             <svg className="absolute -bottom-2 left-0 w-full h-3 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
                                 <path d="M0 5 Q 25 0 50 5 T 100 5" stroke="currentColor" strokeWidth="8" fill="transparent" />
@@ -152,7 +209,6 @@ export default function TentangPage() {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 relative">
-                    <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -z-10 transform -translate-y-1/2"></div>
                     {steps.map((step, i) => (
                         <motion.div
                             key={i}
@@ -176,10 +232,8 @@ export default function TentangPage() {
             </section>
 
             {/* --- VALUES SECTION --- */}
-            <section className="bg-indigo-50/50 py-20 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-indigo-100/50 rounded-full blur-[80px] md:blur-[100px] -mr-24 -mt-24"></div>
-
-                <div className="container mx-auto px-6 py-20 max-w-7xl relative z-10">
+            <section className="bg-indigo-50/50 py-20 relative overflow-hidden border-y border-slate-200/60">
+                <div className="container mx-auto px-6 py-10 max-w-7xl relative z-10">
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <div>
                             <h2 className="text-3xl md:text-6xl lg:text-7xl font-black text-slate-900 mb-8 leading-tight tracking-tight">
@@ -230,48 +284,9 @@ export default function TentangPage() {
                 </div>
             </section>
 
-            {/* --- CTA SECTION --- */}
-            <section className="container mx-auto px-6 py-20 max-w-7xl">
-                <div className="bg-indigo-600 rounded-[3rem] md:rounded-[4rem] p-12 md:p-20 text-white flex flex-col md:flex-row items-center justify-between gap-12 shadow-3xl shadow-indigo-100 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-indigo-500/30 rounded-full blur-[80px] md:blur-[100px] -mr-24 -mt-24 transition-transform group-hover:scale-125 duration-700"></div>
-
-                    <div className="relative z-10 max-w-2xl">
-                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight tracking-tight">
-                            Siap Lulus <br />
-                            Tanpa Drama?
-                        </h2>
-                        <p className="text-indigo-100 text-lg md:text-xl font-medium opacity-90">
-                            Ratusan mahasiswa mempercepat kelulusan setiap bulan bersama EduAssist. Jangan biarkan kuesioner kosong menghambat masa depan Anda.
-                        </p>
-                    </div>
-
-                    <div className="relative z-10 flex flex-col sm:flex-row gap-4">
-                        <Link
-                            href="https://wa.me/6285236110219"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-white text-indigo-600 px-12 py-6 rounded-3xl font-black text-xl shadow-2xl hover:bg-slate-900 hover:text-white transition-all whitespace-nowrap active:scale-95 flex items-center justify-center gap-3 group/btn"
-                        >
-                            <MessageCircle size={24} />
-                            <span>Konsultasi Gratis</span>
-                            <ArrowRight size={20} className="group-hover/btn:translate-x-2 transition-transform" />
-                        </Link>
-                        <Link
-                            href="https://id.shp.ee/RoYtQCu"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-indigo-500 text-white px-12 py-6 rounded-3xl font-black text-xl shadow-2xl hover:bg-orange-600 transition-all whitespace-nowrap active:scale-95 flex items-center justify-center gap-3"
-                        >
-                            <ShoppingBag size={24} />
-                            <span>Lihat Shopee</span>
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
             {/* --- FINAL CTA --- */}
-            <footer className="container mx-auto px-6 pb-20 text-center">
-                <div className="p-12 md:p-24 bg-white border border-slate-200 rounded-[3rem] md:rounded-[5rem] shadow-sm relative overflow-hidden group">
+            <footer className="container mx-auto px-4 pb-20 text-center max-w-[1400px]">
+                <div className="p-12 md:p-24 bg-white border border-slate-200 rounded-[3rem] md:rounded-[5rem] shadow-sm relative overflow-hidden group text-center flex flex-col items-center">
                     <div className="absolute inset-0 bg-indigo-50/50 scale-0 group-hover:scale-100 transition-transform duration-700 rounded-full -z-10 origin-center"></div>
 
                     <motion.h2
@@ -296,6 +311,16 @@ export default function TentangPage() {
                     <p className="mt-8 text-slate-400 font-bold text-sm uppercase tracking-[0.2em]">Fast Response • 24/7 Support • Garansi Kepuasan</p>
                 </div>
             </footer>
+
+            <style jsx global>{`
+                .no-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+                .no-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `}</style>
         </main>
     );
 }

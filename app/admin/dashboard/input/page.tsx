@@ -6,10 +6,18 @@ import * as LucideIcons from "lucide-react";
 import {
     Image as ImageIcon, Globe,
     Clock, UploadCloud, Layers, Tag, PlayCircle,
-    ChevronRight, Loader2, Lock
+    ChevronRight, Loader2, Lock,
+    Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+
+// --- IMPORT TIPTAP ---
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import UnderlineExtension from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Placeholder from '@tiptap/extension-placeholder';
 
 const ICON_LIST = ["GraduationCap", "BookOpen", "Search", "MessageCircle", "Target", "Zap", "ShieldCheck", "PenTool", "Users"];
 const CATEGORIES = [
@@ -18,6 +26,32 @@ const CATEGORIES = [
 ];
 
 type ArticleStatus = "Draft" | "Review" | "Published" | "Archived";
+
+// --- KOMPONEN TOOLBAR EDITOR ---
+const MenuBar = ({ editor }: { editor: any }) => {
+    if (!editor) return null;
+
+    const btnClass = (active: boolean) =>
+        `p-2 rounded-lg transition-all ${active ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`;
+
+    return (
+        <div className="flex flex-wrap gap-1 p-2 border-b border-slate-100 bg-white sticky top-0 z-10 rounded-t-[2.5rem]">
+            <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={btnClass(editor.isActive('bold'))}><Bold size={18} /></button>
+            <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={btnClass(editor.isActive('italic'))}><Italic size={18} /></button>
+            <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()} className={btnClass(editor.isActive('underline'))}><Underline size={18} /></button>
+            <div className="w-[1px] h-6 bg-slate-200 mx-1 self-center" />
+            <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={btnClass(editor.isActive('heading', { level: 1 }))}><Heading1 size={18} /></button>
+            <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={btnClass(editor.isActive('heading', { level: 2 }))}><Heading2 size={18} /></button>
+            <div className="w-[1px] h-6 bg-slate-200 mx-1 self-center" />
+            <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass(editor.isActive('bulletList'))}><List size={18} /></button>
+            <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={btnClass(editor.isActive('orderedList'))}><ListOrdered size={18} /></button>
+            <div className="w-[1px] h-6 bg-slate-200 mx-1 self-center" />
+            <button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()} className={btnClass(editor.isActive({ textAlign: 'left' }))}><AlignLeft size={18} /></button>
+            <button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()} className={btnClass(editor.isActive({ textAlign: 'center' }))}><AlignCenter size={18} /></button>
+            <button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={btnClass(editor.isActive({ textAlign: 'right' }))}><AlignRight size={18} /></button>
+        </div>
+    );
+};
 
 export default function InputArtikel() {
     const router = useRouter();
@@ -50,7 +84,27 @@ export default function InputArtikel() {
 
     const [youtubeLink, setYoutubeLink] = useState("");
 
-    // 1. AUTH GUARD: Pastikan hanya admin yang bisa buka halaman ini
+    // --- INISIALISASI TIPTAP ---
+    const editor = useEditor({
+        extensions: [
+            StarterKit,
+            UnderlineExtension,
+            TextAlign.configure({ types: ['heading', 'paragraph'] }),
+            Placeholder.configure({ placeholder: 'Tulis pengetahuan mendalam Anda di sini...' }),
+        ],
+        content: ``,
+        immediatelyRender: false, // Solusi untuk Error SSR detection
+        onUpdate: ({ editor }) => {
+            setContent(editor.getHTML());
+        },
+        editorProps: {
+            attributes: {
+                class: 'prose prose-slate max-w-none focus:outline-none min-h-[500px] p-8 text-slate-700 leading-loose',
+            },
+        },
+    });
+
+    // 1. AUTH GUARD
     useEffect(() => {
         const checkAuth = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -75,7 +129,11 @@ export default function InputArtikel() {
     }, [title]);
 
     // --- LOGIKA HELPER ---
-    const wordCount = useMemo(() => content.trim().split(/\s+/).filter(word => word.length > 0).length, [content]);
+    const wordCount = useMemo(() => {
+        const textOnly = content.replace(/<[^>]*>?/gm, '');
+        return textOnly.trim().split(/\s+/).filter(word => word.length > 0).length;
+    }, [content]);
+
     const readingTime = useMemo(() => Math.ceil(wordCount / 200) || 1, [wordCount]);
 
     const getYouTubeID = (url: string) => {
@@ -100,7 +158,7 @@ export default function InputArtikel() {
     // --- SUBMIT ---
     const handlePublish = async () => {
         if (!title) return alert("Judul wajib diisi!");
-        if (!content) return alert("Isi artikel wajib diisi!");
+        if (!content || content === "<p></p>") return alert("Isi artikel wajib diisi!");
         if (visualType === 'image' && !imageFile) return alert("Silakan pilih gambar terlebih dahulu!");
 
         setIsSaving(true);
@@ -108,7 +166,6 @@ export default function InputArtikel() {
         try {
             let finalVisualValue = "";
 
-            // 1. Proses Visual (Image/Icon/Video)
             if (visualType === "image" && imageFile) {
                 const fileExt = imageFile.name.split('.').pop();
                 const fileName = `${Date.now()}.${fileExt}`;
@@ -123,7 +180,6 @@ export default function InputArtikel() {
                 finalVisualValue = getYouTubeID(youtubeLink) || "";
             }
 
-            // 2. Insert ke Database
             const { error: insertError } = await supabase
                 .from('articles')
                 .insert([{
@@ -236,13 +292,32 @@ export default function InputArtikel() {
                                 <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Ringkasan isi artikel untuk ditampilkan di kartu blog..." className="w-full p-5 bg-slate-50 border-none rounded-2xl text-sm h-28 resize-none leading-relaxed focus:ring-4 focus:ring-indigo-50 transition-all" />
                             </div>
 
-                            {/* Content Editor */}
+                            {/* Professional Content Editor (TipTap) */}
                             <div>
                                 <div className="flex justify-between items-center mb-3">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Badan Artikel (Full Content)</label>
                                     <span className="text-[10px] bg-slate-100 px-2 py-1 rounded-md text-slate-500 font-bold flex items-center gap-1"><Clock size={12} /> {readingTime} MIN READ</span>
                                 </div>
-                                <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Tulis pengetahuan mendalam Anda di sini..." className="w-full p-8 bg-slate-50 border-none rounded-[2.5rem] text-slate-700 min-h-[500px] leading-loose focus:ring-4 focus:ring-indigo-50 resize-y" />
+                                <div className="bg-slate-50 rounded-[2.5rem] border-none ring-offset-0 focus-within:ring-4 focus-within:ring-indigo-50 transition-all overflow-hidden">
+                                    <MenuBar editor={editor} />
+                                    <EditorContent editor={editor} />
+                                </div>
+
+                                {/* Custom Styling untuk Editor Content */}
+                                <style jsx global>{`
+                                    .ProseMirror p.is-editor-empty:first-child::before {
+                                        content: attr(data-placeholder);
+                                        float: left;
+                                        color: #cbd5e1;
+                                        pointer-events: none;
+                                        height: 0;
+                                    }
+                                    .ProseMirror { outline: none; }
+                                    .prose h1 { font-size: 1.875rem; font-weight: 800; margin-bottom: 1rem; }
+                                    .prose h2 { font-size: 1.5rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+                                    .prose ul { list-style-type: disc; padding-left: 1.5rem; }
+                                    .prose ol { list-style-type: decimal; padding-left: 1.5rem; }
+                                `}</style>
                             </div>
                         </div>
 
@@ -292,7 +367,6 @@ export default function InputArtikel() {
                                             ))}
                                         </div>
 
-                                        {/* Dynamic Preview Area */}
                                         <div className="min-h-[150px]">
                                             {visualType === "icon" && (
                                                 <div className="grid grid-cols-3 gap-3">

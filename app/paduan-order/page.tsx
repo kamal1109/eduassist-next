@@ -1,187 +1,200 @@
 "use client";
-import { MessageSquare, Link as LinkIcon, Settings, CreditCard, Send, CheckCircle, ArrowLeft, ChevronRight } from "lucide-react";
+import {
+    MessageSquare,
+    Link as LinkIcon,
+    Settings,
+    CreditCard,
+    Send,
+    CheckCircle,
+    Sparkles,
+    ShieldCheck,
+    Smartphone,
+    ArrowRight,
+    ShoppingBag
+} from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 const steps = [
-    { icon: <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />, title: "Chat Admin", desc: "Hubungi admin via WhatsApp untuk konsultasi awal kuesioner Anda." },
-    { icon: <LinkIcon className="w-5 h-5 md:w-6 md:h-6" />, title: "Kirim Link", desc: "Kirimkan link Google Form atau link riset yang ingin diisi." },
-    { icon: <Settings className="w-5 h-5 md:w-6 md:h-6" />, title: "Request Pola", desc: "Berikan detail kriteria responden dan pola jawaban yang Anda butuhkan." },
-    { icon: <CreditCard className="w-5 h-5 md:w-6 md:h-6" />, title: "Pembayaran", desc: "Lakukan pembayaran sesuai instruksi admin setelah detail disepakati." },
-    { icon: <Send className="w-5 h-5 md:w-6 md:h-6" />, title: "Proses Kilat", desc: "Admin memproses pengisian. Tersedia paket express untuk hasil lebih cepat." },
-    { icon: <CheckCircle className="w-5 h-5 md:w-6 md:h-6" />, title: "Selesai", desc: "Cek hasil pengisian di kuesioner Anda. Berikan ulasan jika sudah sesuai!" },
+    {
+        icon: <MessageSquare className="w-6 h-6 md:w-8 md:h-8" />,
+        title: "Konsultasi Strategis",
+        desc: "Langkah awal dimulai dengan diskusi mendalam via WhatsApp. Admin kami akan membedah kebutuhan riset Anda, mulai dari kriteria responden hingga target demografi spesifik.",
+        badge: "01"
+    },
+    {
+        icon: <LinkIcon className="w-6 h-6 md:w-8 md:h-8" />,
+        title: "Validasi Tautan",
+        desc: "Kirimkan link instrumen penelitian Anda (Google Form/Lainnya). Tim kami akan melakukan pengecekan teknis untuk memastikan form siap menerima data tanpa kendala.",
+        badge: "02"
+    },
+    {
+        icon: <Settings className="w-6 h-6 md:w-8 md:h-8" />,
+        title: "Sinkronisasi Pola",
+        desc: "Kami menyesuaikan pola jawaban sesuai instruksi akademik Anda. Hal ini krusial untuk menjaga reliabilitas data saat Anda melakukan uji statistik nantinya.",
+        badge: "03"
+    },
+    {
+        icon: <CreditCard className="w-6 h-6 md:w-8 md:h-8" />,
+        title: "Sistem Pembayaran Aman",
+        desc: "Lakukan transaksi melalui kanal resmi (BCA/BNI/DANA). Keamanan pembayaran Anda terjamin dengan invoice resmi yang akan dikirimkan oleh admin.",
+        badge: "04"
+    },
+    {
+        icon: <Send className="w-6 h-6 md:w-8 md:h-8" />,
+        title: "Eksekusi Lapangan",
+        desc: "Responden asli kami mulai mengisi kuesioner Anda. Kami menghindari bot/script untuk menjaga integritas riset. Progres bisa Anda pantau secara real-time.",
+        badge: "05"
+    },
+    {
+        icon: <CheckCircle className="w-6 h-6 md:w-8 md:h-8" />,
+        title: "Serah Terima Data",
+        desc: "Setelah kuota terpenuhi, admin akan melakukan final check. Data mentah Anda kini siap diolah menjadi laporan skripsi atau publikasi jurnal.",
+        badge: "06"
+    },
 ];
 
 export default function PanduanOrder() {
     return (
-        <main className="bg-[#F8FAFC] text-slate-900 overflow-x-hidden min-h-screen selection:bg-indigo-100 selection:text-indigo-700">
-            {/* --- HERO SECTION --- */}
-            <section className="relative pt-28 pb-12 md:pt-32 md:pb-24 px-4 sm:px-6 overflow-hidden bg-white">
-                <div className="absolute top-0 inset-x-0 h-full bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-50/70 via-white to-transparent -z-10"></div>
+        <main className="bg-white text-slate-900 min-h-screen font-sans selection:bg-indigo-100 overflow-x-hidden">
 
-                <div className="container mx-auto max-w-6xl text-center">
-                    <Link href="/" className="inline-flex items-center gap-2 text-slate-500 font-bold mb-6 md:mb-10 hover:text-indigo-600 transition group">
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-sm md:text-base">Kembali ke Beranda</span>
-                    </Link>
+            {/* --- LAYOUT WRAPPER --- */}
+            <div className="container mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-12 xl:px-20">
+                <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 pt-32 md:pt-40">
 
-                    <div className="mb-8 md:mb-12">
-                        <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-6 tracking-tight text-slate-900">
-                            Alur <span className="text-indigo-600 relative inline-block">
-                                Pemesanan
-                                <svg className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-2 md:h-3 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                    {/* --- LEFT SIDE: HERO (STICKY ON DESKTOP) --- */}
+                    <aside className="lg:w-5/12 lg:sticky lg:top-32 lg:h-fit space-y-8 text-center lg:text-left z-20">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-full text-indigo-700 font-bold text-xs md:text-sm uppercase tracking-[0.15em] shadow-sm"
+                        >
+                            <Sparkles size={14} className="fill-indigo-500 text-indigo-500 animate-pulse" />
+                            <span>Workflow System</span>
+                        </motion.div>
+
+                        <h1 className="text-4xl md:text-6xl xl:text-7xl font-black tracking-tighter leading-[1.1] text-slate-900">
+                            Bagaimana Kami <br className="hidden lg:block" />
+                            <span className="text-indigo-600 relative inline-block">
+                                Bekerja
+                                <svg className="absolute -bottom-2 left-0 w-full h-3 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
                                     <path d="M0 5 Q 25 0 50 5 T 100 5" stroke="currentColor" strokeWidth="8" fill="transparent" />
                                 </svg>
                             </span>
+                            <br className="hidden lg:block" /> Untuk Anda.
                         </h1>
-                        <p className="text-slate-500 text-base md:text-xl max-w-2xl mx-auto font-medium">
-                            Panduan lengkap untuk memesan jasa pengisian kuesioner di EduAssist. Mudah, Cepat, dan Amanah.
+
+                        <p className="text-slate-500 text-base md:text-xl font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
+                            Kami telah menyederhanakan birokrasi riset yang rumit menjadi 6 langkah praktis. Fokus pada analisis Anda, biarkan kami menangani teknis pengumpulan data.
                         </p>
-                    </div>
-                </div>
-            </section>
 
-            {/* --- STEPS SECTION --- */}
-            <section className="container mx-auto px-4 sm:px-6 py-12 md:py-20 max-w-4xl">
-                <div className="mb-8 md:mb-12 bg-gradient-to-r from-indigo-50 to-white p-4 md:p-6 rounded-xl md:rounded-2xl border border-indigo-100">
-                    <div className="flex items-start gap-3">
-                        <div className="bg-indigo-100 text-indigo-600 rounded-lg p-2 shrink-0">
-                            <CheckCircle className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-slate-900 mb-1">Info Penting:</h3>
-                            <p className="text-sm text-slate-600 leading-relaxed">
-                                Minimal order 30 responden. Waktu pengerjaan mulai dari 4 hari. Harga mulai Rp 2.000 per responden.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-4 md:space-y-6 relative">
-                    {/* Garis Vertikal Konektor (Mobile Only) */}
-                    <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-slate-200 md:hidden -z-10"></div>
-
-                    {steps.map((step, i) => (
-                        <div
-                            key={i}
-                            className="bg-white p-4 md:p-6 lg:p-8 rounded-xl md:rounded-[2.5rem] border border-slate-200/60 shadow-lg shadow-slate-200/20 hover:shadow-xl hover:border-indigo-200 transition-all group relative"
-                        >
-                            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
-                                {/* Number Badge */}
-                                <div className="relative shrink-0">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-indigo-600 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100 group-hover:scale-110 group-hover:rotate-3 transition-transform z-10 relative">
-                                        {step.icon}
-                                    </div>
-                                    <div className="absolute -top-2 -right-2 md:-top-3 md:-right-3 bg-indigo-100 text-indigo-600 font-black rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center text-xs md:text-sm border-2 border-white z-20">
-                                        {i + 1}
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 text-center md:text-left">
-                                    <h3 className="text-lg md:text-2xl font-black mb-1 md:mb-2 text-slate-900">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-slate-500 text-sm md:text-base leading-relaxed">
-                                        {step.desc}
-                                    </p>
-                                </div>
-
-                                {/* Chevron for mobile */}
-                                <ChevronRight className="w-5 h-5 text-slate-400 md:hidden group-hover:text-indigo-600 transition-colors" />
+                        <div className="hidden lg:flex flex-col gap-5 pt-6">
+                            <div className="flex items-center gap-4 text-slate-600 font-bold text-sm md:text-base">
+                                <div className="bg-emerald-100 p-2 rounded-full"><ShieldCheck className="text-emerald-600" size={20} /></div>
+                                Keamanan Transaksi Terjamin
                             </div>
+                            <div className="flex items-center gap-4 text-slate-600 font-bold text-sm md:text-base">
+                                <div className="bg-blue-100 p-2 rounded-full"><Smartphone className="text-blue-600" size={20} /></div>
+                                Dukungan WhatsApp 24/7
+                            </div>
+                        </div>
 
-                            {/* Timeline connector for desktop */}
-                            {i < steps.length - 1 && (
-                                <div className="hidden md:block mt-6">
-                                    <div className="flex justify-center items-center gap-4">
-                                        <div className="h-0.5 w-full bg-slate-100"></div>
-                                        <div className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0">
-                                            Selanjutnya
+                        <div className="pt-8 hidden lg:block">
+                            <Link href="https://wa.me/6285236110219" target="_blank" className="inline-flex items-center gap-3 bg-slate-900 text-white px-10 py-5 rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-xl active:scale-95 text-lg group">
+                                Konsultasi Sekarang <ArrowRight size={22} className="group-hover:-rotate-12 transition-transform" />
+                            </Link>
+                        </div>
+                    </aside>
+
+                    {/* --- RIGHT SIDE: STEPS (SCROLLING AREA) --- */}
+                    <div className="lg:w-7/12 pb-10 relative">
+                        <div className="space-y-8 md:space-y-12">
+                            {steps.map((step, i) => (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, margin: "-50px" }}
+                                    key={i}
+                                    className="group relative"
+                                >
+                                    {/* Connector Line */}
+                                    {i !== steps.length - 1 && (
+                                        <div className="absolute left-[2.2rem] md:left-[3.25rem] top-24 bottom-[-48px] w-0.5 border-l-2 border-dashed border-slate-200 group-hover:border-indigo-300 transition-colors z-0"></div>
+                                    )}
+
+                                    <div className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/40 hover:border-indigo-100 transition-all duration-300 flex flex-col md:flex-row gap-6 md:gap-8 relative z-10">
+                                        <div className="relative shrink-0 flex items-start">
+                                            <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-50 text-indigo-600 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-inner">
+                                                {step.icon}
+                                            </div>
+                                            <div className="absolute -top-3 -right-3 md:-top-2 md:-right-2 w-8 h-8 md:w-10 md:h-10 bg-white border-2 border-slate-100 rounded-full flex items-center justify-center text-xs md:text-sm font-black text-slate-400 group-hover:border-indigo-600 group-hover:text-indigo-600 transition-all shadow-sm">
+                                                {step.badge}
+                                            </div>
                                         </div>
-                                        <div className="h-0.5 w-full bg-slate-100"></div>
+                                        <div className="space-y-3 py-1">
+                                            <h3 className="text-xl md:text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                                {step.title}
+                                            </h3>
+                                            <p className="text-slate-500 leading-relaxed text-sm md:text-base font-medium">
+                                                {step.desc}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                </motion.div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                {/* Additional Info */}
-                <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 md:p-6 rounded-xl border border-green-200">
-                        <h4 className="font-bold text-green-800 mb-2">Garansi Kepuasan:</h4>
-                        <ul className="text-sm text-green-700 space-y-1">
-                            <li className="flex items-start gap-2">
-                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                <span>Data valid & reliabel</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                <span>Responden manusia asli 100%</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                <span>Revisi jika data tidak valid</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 md:p-6 rounded-xl border border-amber-200">
-                        <h4 className="font-bold text-amber-800 mb-2">Tips Sukses Order:</h4>
-                        <ul className="text-sm text-amber-700 space-y-1">
-                            <li className="flex items-start gap-2">
-                                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 font-bold">•</div>
-                                <span>Siapkan link kuesioner dan kriteria</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 font-bold">•</div>
-                                <span>Diskusikan pola jawaban yang diinginkan</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 font-bold">•</div>
-                                <span>Konfirmasi detail sebelum pembayaran</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                {/* CTA Section */}
-                <div className="mt-12 md:mt-16 text-center bg-slate-900 rounded-[2rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
-                    {/* Background Decor */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/30 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -ml-16 -mb-16"></div>
-
-                    <div className="relative z-10">
-                        <h3 className="text-2xl md:text-4xl font-black mb-4">Siap Memulai Pesanan?</h3>
-                        <p className="text-slate-300 mb-8 max-w-2xl mx-auto text-sm md:text-lg">
-                            Ikuti alur di atas dan hubungi admin kami via WhatsApp untuk konsultasi gratis. Kami siap membantu riset Anda sampai tuntas.
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-                            <Link
-                                href="https://wa.me/6285236110219"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 md:gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 md:px-10 py-3 md:py-4 rounded-xl font-bold md:font-black text-base md:text-lg shadow-xl hover:from-green-600 hover:to-green-700 transition-all hover:-translate-y-1 active:scale-95"
-                            >
-                                <MessageSquare className="w-5 h-5" />
-                                <span>Hubungi via WhatsApp</span>
-                            </Link>
-
-                            <Link
-                                href="/layanan"
-                                className="inline-flex items-center justify-center gap-2 md:gap-3 bg-white text-slate-900 px-6 md:px-10 py-3 md:py-4 rounded-xl font-bold md:font-black text-base md:text-lg hover:bg-slate-50 transition-all active:scale-95"
-                            >
-                                <span>Lihat Kalkulator Harga</span>
-                                <ChevronRight className="w-5 h-5" />
+                        {/* CTA Mobile only (Tombol Kecil di tengah list) */}
+                        <div className="mt-16 lg:hidden">
+                            <Link href="https://wa.me/6285236110219" className="flex items-center justify-center gap-3 bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg active:scale-95 transition-transform text-lg">
+                                <MessageSquare size={22} /> Hubungi Admin Sekarang
                             </Link>
                         </div>
-
-                        <div className="mt-8 pt-6 border-t border-white/10 text-xs text-slate-400">
-                            Admin WhatsApp: 0852-3611-0219 (Salsabella Ajeng Syahtry) • Respon Cepat
-                        </div>
                     </div>
+                </div>
+            </div>
+
+            {/* --- FINAL CTA (NEW ADDITION) --- */}
+            {/* Bagian ini penting agar user tidak 'buntu' setelah membaca langkah terakhir */}
+            <section className="container mx-auto px-6 py-24 text-center max-w-[1400px] border-t border-slate-100 mt-10">
+                <div className="p-12 md:p-24 bg-white border border-slate-200 rounded-[3rem] md:rounded-[5rem] shadow-sm relative overflow-hidden group text-center flex flex-col items-center">
+                    <div className="absolute inset-0 bg-indigo-50/50 scale-0 group-hover:scale-100 transition-transform duration-700 rounded-full -z-10 origin-center"></div>
+
+                    <h2 className="text-3xl md:text-6xl font-black mb-8 tracking-tight leading-[1.1] text-slate-900">
+                        Sudah Paham Alurnya? <br />
+                        <span className="text-indigo-600">Ayo Mulai Sekarang.</span>
+                    </h2>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Link
+                            href="https://wa.me/6285236110219"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-3 bg-indigo-600 text-white px-10 md:px-12 py-5 rounded-2xl font-black text-lg md:text-xl shadow-xl hover:bg-slate-900 transition-all hover:scale-105 active:scale-95 group"
+                        >
+                            Order via WhatsApp
+                            <MessageSquare size={24} className="group-hover:-rotate-12 transition-transform" />
+                        </Link>
+                        <Link
+                            href="/layanan"
+                            className="inline-flex items-center gap-3 bg-white text-slate-900 border-2 border-slate-200 px-10 md:px-12 py-5 rounded-2xl font-black text-lg md:text-xl hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
+                        >
+                            Cek Harga Dulu
+                            <ShoppingBag size={24} />
+                        </Link>
+                    </div>
+
+                    <p className="mt-8 text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">
+                        Admin Fast Response • Data Aman • Garansi Valid
+                    </p>
                 </div>
             </section>
+
+            {/* --- DECORATIVE BACKGROUND ELEMENTS --- */}
+            <div className="fixed top-0 left-0 -z-20 w-full h-full pointer-events-none opacity-40 overflow-hidden">
+                <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-blue-50/50 rounded-full blur-[120px]"></div>
+                <div className="absolute bottom-[10%] left-[5%] w-[30rem] h-[30rem] bg-indigo-50/50 rounded-full blur-[150px]"></div>
+            </div>
         </main>
     );
 }
